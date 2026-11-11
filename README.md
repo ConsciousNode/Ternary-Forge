@@ -1,10 +1,27 @@
 # Ternary Forge
 
+**A post-training ternary converter and measurement bench for RWKV-7.** It takes a trained float RWKV-7 checkpoint and converts its weights to ternary: each weight becomes −1, 0 or +1 times a scale. Then it measures how much the model changed. The question it exists to answer: can a finished RWKV-7 be made ternary, for cheap, fast edge inference, without being retrained?
+
+Xinu: single-file, zero-dependency, offline.
+
+**Status:** built by Argon, audited by Kehai Interim, preregistered experiment run on the 0.1B. **Outcome: 📝 Negative result** ([`AUDIT.md`](AUDIT.md)).
+
+> On RWKV-7 G1d 0.1B, the best fully ternary conversion (error compensation + gentle heal) agrees with the float model on **5.1%** of next tokens on test A and **2.0%** on test B. Q4_K_M agrees on **~81%**, Q8_0 on **~98%**. Every method beats random codes, and error compensation and a small heal lr clearly help, but post-training ternary is nowhere near Q4 here. The instrument itself checks out: Argon's 10/10 tests pass, and an independent numpy evaluator reading only `.tforge` files reproduces its logits. The 0.4B scaling check is still to do.
+
+- `SPEC.md`: the build spec, exactly as sent. It specifies an instrument, not outcomes: the builder never sees the real checkpoints or the success bar.
+- `PREREGISTRATION.md`: **what counts as success, fixed before any real-model result existed.** It was committed on 2026-11-11 (sha256 prefix `c25211a11a135ba1`). It must not change after results exist. Any later disagreement with it gets reported under both rules.
+
+Models measured: BlinkDL's RWKV-7 G1d 0.1B and 0.4B (Apache 2.0). They're fetched separately and never committed.
+
+---
+
+## The instrument (Argon's README)
+
 **ConsciousNode SoftWorks.** A post-training ternary converter (`{-1, 0, +1}` with scales) and measurement bench for **RWKV-7 ("Goose" x070)** checkpoints.
 
 Built under Xinu rules: single-file HTML (`forge.html`), zero external dependencies, offline execution, no network or browser storage APIs, and strict determinism.
 
-## Components
+### Components
 
 1. **`forge.html`** — Single-file browser application:
    - Loads RWKV-7 checkpoints in `.pth` (PyTorch ZIP), `.safetensors`, and `.gguf` (`F32`, `F16`, `BF16`, and quantized GGUF formats), or previously exported `.tforge` ternary models.
@@ -23,7 +40,7 @@ Built under Xinu rules: single-file HTML (`forge.html`), zero external dependenc
    - `FORMAT.md` — Byte-by-byte specification of the `.tforge` binary file format.
    - `REPORT.md` — Engineering summary of what was built, how each of the 10 tests was verified, and execution timings on the synthetic test models.
 
-## CLI Usage
+### CLI Usage
 
 ### 1. Convert a Checkpoint (`convert.js`)
 ```bash
@@ -81,7 +98,7 @@ node tables.js results.jsonl --out tables.md
 node tests/run.js
 ```
 
-## Provenance of Lifted Code
+### Provenance of Lifted Code
 
 All code lifted from the studio's attached `pips-room.html` is inlined into `forge.html` with explicit line-range provenance comments:
 - `// from pips-room.html:1329-1329` — `#rwkv-world-vocab` JSON vocabulary table.
@@ -92,3 +109,6 @@ All code lifted from the studio's attached `pips-room.html` is inlined into `for
 - `// from pips-room.html:3915-3983` — `class TMAC` (81-entry base-3 lookup table ternary matrix-vector kernel).
 - `// from pips-room.html:3985-4041` — `class BitLinear`.
 - `// from pips-room.html:4342-4392` — `sampleLogits`.
+
+
+MIT License · ConsciousNode SoftWorks

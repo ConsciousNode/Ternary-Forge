@@ -2,3 +2,11 @@
 *.safetensors
 *.gguf
 *.bin
+
+# audit: never commit converted models, eval dumps or the Pip's Room copy used for parity
+*.tforge
+*.npz
+*.f32
+*.u32
+pips-room.html
+models/
